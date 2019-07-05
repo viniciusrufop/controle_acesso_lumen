@@ -46,4 +46,8 @@ class UserController extends Controller
     public function auth(){
         return response()->json('ok', Response::HTTP_OK);
     }
+
+    public function testeGet(){
+        return response()->json('ok', Response::HTTP_OK);
+    }
 }
