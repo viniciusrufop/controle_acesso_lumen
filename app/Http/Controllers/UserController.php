@@ -23,9 +23,8 @@ class UserController extends Controller
     public function login(Request $req)
     {
 
-        return response()->json('foi', Response::HTTP_OK);
         //dd($req->all());
-        /* try {
+        try {
             if (! $token = $this->jwt->attempt($req->only('email', 'password')) ) {
                 return response()->json(['user_not_found'], Response::HTTP_UNAUTHORIZED);
         }
@@ -41,7 +40,7 @@ class UserController extends Controller
             'token' => $token
         ];
 
-        return response()->json($token, Response::HTTP_OK); */
+        return response()->json($token, Response::HTTP_OK);
     }
 
     public function auth(){
