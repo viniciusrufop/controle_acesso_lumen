@@ -32,4 +32,14 @@ class User extends Model implements JWTSubject, AuthenticatableContract, Authori
     {
         return [];
     }
+
+    public function dataUser()
+    {
+        return $this->hasOne(DataUser::class,'user_id','id');
+    }
+
+    public function admin()
+    {
+        return $this->hasOne(Admin::class,'user_id','id');
+    }
 }

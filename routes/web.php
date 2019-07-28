@@ -1,8 +1,41 @@
 <?php
 
 $router->post('login','UserController@login');
-$router->get('teste','UserController@testeGet');
+
+$router->group(['prefix'=>'api'],function () use ($router){
+   $router->post('auth-by-tag',"TagController@authByTag");
+   $router->post('insert-new-tag',"TagController@insertNewTag");
+   $router->post('desable-tag',"TagController@desableTag");
+   $router->post('get-date',"TagController@getDate");
+   $router->post('server-on',"TagController@serverOn");
+   $router->post('auth-by-login',"TagController@authByLogin");
+});
 
 $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router){
    $router->get('auth',"UserController@auth");
+   $router->post('upgrade-admin',"DataUserController@upgradeAdmin");
+   $router->put('downgrade-admin',"DataUserController@downgradeAdmin");
 });
+
+// ========= ROTAS TESTE =========
+
+
+$router->get('teste','ExampleController@testeGet');
+$router->get('teste-post','ExampleController@testePost');
+$router->get('generate-token-teste','UserController@generateTokeTeste');
+
+$router->get('get-data-user','ExampleController@getDataUser');
+$router->get('get-user-by-data','ExampleController@getUserByData');
+$router->get('insert-user','ExampleController@insertUser');
+$router->get('get-tag-by-data-user','ExampleController@getTagByDataUser');
+$router->get('get-data-user-by-tag','ExampleController@getDataUserByTag');
+$router->get('insert-tag','ExampleController@insertTag');
+$router->get('get-tags-without-user','ExampleController@getTagsWhithoutUse');
+$router->get('get-tag-true','ExampleController@getTagTrue');
+$router->get('change-tag-true','ExampleController@changeTagTrue');
+$router->get('get-token-user','ExampleController@getTokenUser');
+$router->get('generate-token','ExampleController@generateToken');
+$router->get('upgrade-admin','ExampleController@upgradeAdmin');
+$router->get('downgrade-admin','ExampleController@downgradeAdmin');
+$router->get('teste-auth-token','ExampleController@testeAuthToken');
+$router->get('insert-history','ExampleController@insertHistory');
