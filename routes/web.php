@@ -15,6 +15,7 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
    $router->get('auth',"UserController@auth");
    $router->post('upgrade-admin',"DataUserController@upgradeAdmin");
    $router->put('downgrade-admin',"DataUserController@downgradeAdmin");
+   $router->get('get-token-admin',"DataUserController@getTokenAdmin");
    $router->post('get-cep','DataUserController@getCep');
    $router->get('get-empty-tags','DataUserController@getEmptyTags');
    $router->post('create-user','DataUserController@createUser');

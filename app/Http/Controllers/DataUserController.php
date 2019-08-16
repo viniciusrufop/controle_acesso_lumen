@@ -97,6 +97,25 @@ class DataUserController extends Controller
             return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    public function getTokenAdmin()
+    {
+        try{
+            $tokens = $this->adminModel->get();
+
+            if(!empty($tokens[0])){
+                $tokenList = [];
+                foreach ($tokens as $value){
+                    array_push($tokenList,$value['token']);
+                }
+                return response()->json(['error' => false,'tokenList' => $tokenList],Response::HTTP_OK);
+            } else {
+                return response()->json(['error' => false,'message' => "nao_possui_tags_desvinculadas"],Response::HTTP_OK);
+            }
+        } catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
     
     public function getCep(Request $req)
     {
