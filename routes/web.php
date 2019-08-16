@@ -15,6 +15,17 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
    $router->get('auth',"UserController@auth");
    $router->post('upgrade-admin',"DataUserController@upgradeAdmin");
    $router->put('downgrade-admin',"DataUserController@downgradeAdmin");
+   $router->post('get-cep','DataUserController@getCep');
+   $router->get('get-empty-tags','DataUserController@getEmptyTags');
+   $router->post('create-user','DataUserController@createUser');
+   $router->post('get-email-user','DataUserController@getEmailUser');
+   $router->post('get-login-user','DataUserController@getLoginUser');
+   $router->get('get-all-users','DataUserController@getAllUsers');
+   $router->delete('delete-user','DataUserController@deleteUser');
+   $router->post('get-data-user','DataUserController@getDataUser');
+   $router->put('update-user','DataUserController@updateUser');
+   $router->post('get-history','DataUserController@getHistory');
+   $router->post('get-relatorio','DataUserController@getRelatorio');
 });
 
 // ========= ROTAS TESTE =========
@@ -39,3 +50,4 @@ $router->get('upgrade-admin','ExampleController@upgradeAdmin');
 $router->get('downgrade-admin','ExampleController@downgradeAdmin');
 $router->get('teste-auth-token','ExampleController@testeAuthToken');
 $router->get('insert-history','ExampleController@insertHistory');
+$router->get('get-cep-exemplo','ExampleController@getCep');

@@ -18,7 +18,8 @@ class CreateHistoriesTable extends Migration
             $table->bigInteger('data_user_id')->unsigned()->nullable(true);
             $table->foreign('data_user_id')
                     ->references('id')
-                    ->on('data_users');
+                    ->on('data_users')
+                    ->onDelete('cascade');
             $table->string('tag_value',8)->nullable(true);
             $table->date('data');
             $table->time('hora');

@@ -220,12 +220,12 @@ class TagController extends Controller
                             ->where('senha',$senha_value)
                             ->where('ativo',1)
                             ->get()->first();
-
+                
                 if(empty($login)){
                     $this->insertHistories(null,$login_value);
                     return response()->json(['error' => 'user_UNAUTHORIZED_1'], Response::HTTP_UNAUTHORIZED);
                 } else{
-                    $this->insertHistories($login->user_id,null);
+                    $this->insertHistories($login->id,"login");
                     return response()->json(['error' => false,'message' => 'autenticado_com_sucesso'],Response::HTTP_OK);
                 }
             }
@@ -242,7 +242,6 @@ class TagController extends Controller
             'data'  => date('Y-m-d'),
             'hora'  => date('H:i:s')
         ];
-
         $history = $this->historyModel->create($dataForm);
     }
 }

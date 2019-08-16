@@ -19,7 +19,8 @@ class CreateTagsTable extends Migration
             $table->bigInteger('data_user_id')->unsigned()->nullable(true);
             $table->foreign('data_user_id')
                     ->references('id')
-                    ->on('data_users');
+                    ->on('data_users')
+                    ->onDelete('cascade');
             $table->boolean('ativo')->nullable(false);
             $table->timestamps();
         });

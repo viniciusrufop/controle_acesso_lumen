@@ -21,6 +21,8 @@ class User extends Model implements JWTSubject, AuthenticatableContract, Authori
         'password',
     ];
 
+    protected $hidden = ['password']; 
+
     public $timestamps = true;
     
     public function getJWTIdentifier()

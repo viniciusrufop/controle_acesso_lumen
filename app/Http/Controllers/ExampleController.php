@@ -214,4 +214,27 @@ class ExampleController extends Controller
         echo $history . "<br>";
     }
 
+    public function getCep()
+    {
+        // URL para onde será enviada a requisição GET
+        $url_feed = "http://viacep.com.br/ws/13034673/json";
+        
+        // Inicia a sessão cURL
+        $ch = curl_init();
+        
+        // Informa a URL onde será enviada a requisição
+        curl_setopt($ch, CURLOPT_URL, $url_feed);
+        
+        // Se true retorna o conteúdo em forma de string para uma variável
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        
+        // Envia a requisição
+        $result = curl_exec($ch);
+        
+        // Finaliza a sessão
+        curl_close($ch);
+
+        return $result;
+    }
+
 }
