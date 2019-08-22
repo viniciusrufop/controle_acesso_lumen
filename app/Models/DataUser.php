@@ -39,4 +39,9 @@ class DataUser extends Model
     {
         return $this->hasMany(History::class,'data_user_id','id');
     }
+
+    public function adjustmentRequest()
+    {
+        return $this->hasMany(AdjustmentRequest::class,'data_user_id','id');
+    }
 }

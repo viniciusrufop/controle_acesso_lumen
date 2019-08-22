@@ -13,6 +13,8 @@ $router->group(['prefix'=>'api'],function () use ($router){
 
 $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router){
    $router->get('auth',"UserController@auth");
+   $router->post('get-admin','UserController@getAdmin');
+
    $router->post('upgrade-admin',"DataUserController@upgradeAdmin");
    $router->put('downgrade-admin',"DataUserController@downgradeAdmin");
    $router->get('get-token-admin',"DataUserController@getTokenAdmin");
@@ -24,9 +26,14 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
    $router->get('get-all-users','DataUserController@getAllUsers');
    $router->delete('delete-user','DataUserController@deleteUser');
    $router->post('get-data-user','DataUserController@getDataUser');
+   $router->post('get-data-user-by-email','DataUserController@getDataUserByEmail');
    $router->put('update-user','DataUserController@updateUser');
    $router->post('get-history','DataUserController@getHistory');
    $router->post('get-relatorio','DataUserController@getRelatorio');
+   
+   $router->post('adjustment-request','AjustmentRequestController@adjustmentRequest');
+   $router->post('get-adjustment-request','AjustmentRequestController@getAdjustmentRequest');
+   $router->post('accept-adjustment-request','AjustmentRequestController@acceptAdjustmentRequest');
 });
 
 // ========= ROTAS TESTE =========

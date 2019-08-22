@@ -168,7 +168,8 @@ class DataUserController extends Controller
                     'email' =>  'required',
                     'login' =>  'required | max:4 | min:4',
                     'senha' =>  'required | max:4 | min:4',
-                    'ativo' =>  'required | boolean'
+                    'ativo' =>  'required | boolean',
+                    'admin' =>  'required | boolean',
                     ]
             );
             if($validator->fails()){
@@ -192,6 +193,14 @@ class DataUserController extends Controller
                     $dataForm['password'] = Hash::make($req->params['login'] . $req->params['senha']);
                     $user = $this->userModel->create($dataForm);
                     $dataUser = $user->dataUser()->create($req->params);
+
+                    if($req->params['admin']){
+                        $dataForm = [
+                            'user_id'   => $user->id,
+                            'token'     => Hash::make($email_value)
+                        ];
+                        $admin = $user->admin()->create($dataForm);
+                    }
 
                     if($req->params['tag']){
                         $tags = $req->params['tag'];
@@ -339,6 +348,7 @@ class DataUserController extends Controller
                 if($dataUser){
                     $email = $dataUser->user()->get()->first()->email;
                     $tags = $dataUser->tags()->get();
+                    $admin = $dataUser->user()->get()->first()->admin()->get()->first() ? true : false;
 
                     if(!empty($tags[0])){
                         $tagList = [];
@@ -352,6 +362,7 @@ class DataUserController extends Controller
                         $dataUser['tags'] = $tagList;
                     } 
                     $dataUser['email'] = $email;
+                    $dataUser['admin'] = $admin;
                     unset(
                         $dataUser['user_id'],
                         $dataUser['created_at'],
@@ -371,6 +382,58 @@ class DataUserController extends Controller
         }
     }
 
+    public function getDataUserByEmail(Request $req)
+    {
+        try{
+            $validator = Validator::make(
+                $req->params,['email' =>  'required']
+            );
+
+            if($validator->fails()){
+                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
+            } else {
+                $email_value = $req->params['email'];
+                $user = $this->userModel->where('email',$email_value)->get()->first();
+                if($user){
+                    $dataUser = $user->dataUser()->get()->first();
+                    $admin = ($user->admin()->get()->first()) ? true : false;
+
+                    if($dataUser){
+                        $tags = $dataUser->tags()->get();
+
+                        if(!empty($tags[0])){
+                            $tagList = [];
+                            foreach ($tags as $tag) {
+                                $values = [
+                                    'tag_value' => $tag['tag_value'],
+                                    'ativo' => $tag['ativo'],
+                                ];
+                                array_push($tagList,$values);
+                            }
+                            $dataUser['tags'] = $tagList;
+                        }
+                        unset(
+                            $dataUser['user_id'],
+                            $dataUser['created_at'],
+                            $dataUser['updated_at']
+                        );
+                    }                   
+                    $dataUser['email'] = $email_value;
+                    $dataUser['admin'] = $admin;
+                    
+                    $result = [
+                        'dataUser' => $dataUser,
+                    ];
+                    return response()->json(['error' => false,'result' => $result],Response::HTTP_OK);
+                } else {
+                    return response()->json(['error' => true,'message' => 'email_de_usuario_nao_encontrado'],Response::HTTP_NOT_FOUND);
+                }
+            }
+        } catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public function updateUser(Request $req)
     {
         try{
@@ -380,15 +443,31 @@ class DataUserController extends Controller
                     'nome'  =>  'required',
                     'email' =>  'required',
                     'login' =>  'required | max:4 | min:4',
-                    'ativo' =>  'required | boolean'
+                    'ativo' =>  'required | boolean',
+                    'admin' =>  'required | boolean'
                     ]
             );
             if($validator->fails()){
                 return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
             } else {
                 $dataUser = $this->dataUserModel->find($req->params['id']);
+                $admin_value = $req->params['admin'];
 
                 if($dataUser){
+                    $user = $dataUser->user()->get()->first();
+                    $adminUser = $user->admin()->get()->first();
+                    $email_value = $user->email;
+
+                    if($admin_value && !$adminUser){
+                        $dataForm = [
+                            'user_id'   => $user->id,
+                            'token'     => Hash::make($email_value)
+                        ];
+                        $admin = $user->admin()->create($dataForm);
+                    } else if(!$admin_value && $adminUser){
+                        $adminUser->delete();
+                    }
+
                     if(!empty($req->params['tag'][0])){
                         foreach ($req->params['tag'] as $tag_value) {
                             $tag = $this->tagModel->where('tag_value',$tag_value)->get()->first();
@@ -575,4 +654,6 @@ class DataUserController extends Controller
             return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    
 }
