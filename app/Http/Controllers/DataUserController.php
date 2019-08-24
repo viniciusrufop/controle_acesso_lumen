@@ -176,8 +176,8 @@ class DataUserController extends Controller
                 return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
             } else {
 
-                $email_value = $req->email;
-                $login_value = $req->login;
+                $email_value = $req->params['email'];
+                $login_value = $req->params['login'];
 
                 $email = $this->userModel->where('email',$email_value)->get()->first();
                 $login = $this->dataUserModel->where('login',$login_value)->get()->first();
