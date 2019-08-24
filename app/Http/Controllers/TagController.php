@@ -405,7 +405,7 @@ class TagController extends Controller
                 // return true;
             } 
             // else return false;
-            else return ['error' => true,'result'=>'problema_admin_ou_authToken'];
+            else return ['error' => true,'email_value'=>$email_value,'authToken_value'=>$authToken_value];
         } else {
             return ['error' => true,'result'=>'usuario_nao_encontrado'];
             // return false;
