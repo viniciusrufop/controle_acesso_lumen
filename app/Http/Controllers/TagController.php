@@ -263,8 +263,9 @@ class TagController extends Controller
             } else {
                 $admin = $this->isAdmin($req->params);
 
-                if(!$admin){
-                    return response()->json(['error' => 'solicitacao_nao_autorizada'],Response::HTTP_BAD_REQUEST);
+                if($admin['error']){
+                    return response()->json(['result' => $admin],Response::HTTP_BAD_REQUEST);
+                    // return response()->json(['error' => 'solicitacao_nao_autorizada'],Response::HTTP_BAD_REQUEST);
                 }
             
                 $tags = $this->tagModel->get();
@@ -305,7 +306,7 @@ class TagController extends Controller
             } else {
                 $admin = $this->isAdmin($req->params);
 
-                if(!$admin){
+                if($admin['error']){
                     return response()->json(['error' => 'solicitacao_nao_autorizada'],Response::HTTP_BAD_REQUEST);
                 }
                 $id = $req->params['id'];
@@ -336,7 +337,7 @@ class TagController extends Controller
             } else {
                 $admin = $this->isAdmin($req->params);
 
-                if(!$admin){
+                if($admin['error']){
                     return response()->json(['error' => 'solicitacao_nao_autorizada'],Response::HTTP_BAD_REQUEST);
                 }
                 $id = $req->params['id'];
@@ -367,7 +368,7 @@ class TagController extends Controller
                 return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
             } else {
                 $admin = $this->isAdmin($req->params);
-                if(!$admin){
+                if($admin['error']){
                     return response()->json(['error' => 'solicitacao_nao_autorizada'],Response::HTTP_BAD_REQUEST);
                 }
                 $idUser = $req->params['idUser'];
@@ -400,11 +401,14 @@ class TagController extends Controller
             $admin = $user->admin()->get()->first();
             $authToken = Hash::check($email_value, $authToken_value);
             if($admin && $authToken){
-                return true;
+                return ['error' => false,'result'=>'admin'];
+                // return true;
             } 
-            else return false;
+            // else return false;
+            else return ['error' => true,'result'=>'problema_admin_ou_authToken'];
         } else {
-            return false;
+            return ['error' => true,'result'=>'usuario_nao_encontrado'];
+            // return false;
         }
     }
     
