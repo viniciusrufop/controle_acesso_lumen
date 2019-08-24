@@ -37,6 +37,9 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
    $router->post('accept-adjustment-request','AjustmentRequestController@acceptAdjustmentRequest');
 
    $router->post('get-tags',"TagController@getTags");
+   $router->post('delete-tag',"TagController@deleteTag");
+   $router->post('desvincular-tag',"TagController@desvincularTag");
+   $router->post('vincular-tag',"TagController@vincularTag");
 });
 
 // ========= ROTAS TESTE =========

@@ -290,6 +290,105 @@ class TagController extends Controller
         }
     }
 
+    public function deleteTag(Request $req)
+    {
+        try{
+            $validator = Validator::make(
+                $req->params,[
+                    'email'     =>  'required',
+                    'authToken' =>  'required | max:60 | min:60',
+                    'id'        =>  'required'
+                    ]
+            );
+            if($validator->fails()){
+                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
+            } else {
+                $admin = $this->isAdmin($req->params);
+
+                if(!$admin){
+                    return response()->json(['error' => 'solicitacao_nao_autorizada'],Response::HTTP_BAD_REQUEST);
+                }
+                $id = $req->params['id'];
+                $tag = $this->tagModel->find($id);
+                if($tag) {
+                    $tag->delete();
+                    return response()->json(['result' => 'tag_deletada'],Response::HTTP_OK);
+                }
+                return response()->json(['error' => 'tag_nao_encontrada'],Response::HTTP_BAD_REQUEST);
+            }
+        }  catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function desvincularTag(Request $req)
+    {
+        try{
+            $validator = Validator::make(
+                $req->params,[
+                    'email'     =>  'required',
+                    'authToken' =>  'required | max:60 | min:60',
+                    'id'        =>  'required'
+                    ]
+            );
+            if($validator->fails()){
+                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
+            } else {
+                $admin = $this->isAdmin($req->params);
+
+                if(!$admin){
+                    return response()->json(['error' => 'solicitacao_nao_autorizada'],Response::HTTP_BAD_REQUEST);
+                }
+                $id = $req->params['id'];
+                $tag = $this->tagModel->find($id);
+                if($tag) {
+                    $tag->update(['data_user_id' => null]);
+                    return response()->json(['result' => 'tag_desvinculada'],Response::HTTP_OK);
+                }
+                return response()->json(['error' => 'tag_nao_encontrada'],Response::HTTP_BAD_REQUEST);
+            }
+        }  catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function vincularTag(Request $req)
+    {
+        try{
+            $validator = Validator::make(
+                $req->params,[
+                    'email'     =>  'required',
+                    'authToken' =>  'required | max:60 | min:60',
+                    'idTag'     =>  'required',
+                    'idUser'    =>  'required'
+                    ]
+            );
+            if($validator->fails()){
+                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
+            } else {
+                $admin = $this->isAdmin($req->params);
+                if(!$admin){
+                    return response()->json(['error' => 'solicitacao_nao_autorizada'],Response::HTTP_BAD_REQUEST);
+                }
+                $idUser = $req->params['idUser'];
+                $idTag = $req->params['idTag'];
+
+                $tag = $this->tagModel->find($idTag);
+                if(!$tag){
+                    return response()->json(['error' => 'tag_nao_encontrada'],Response::HTTP_BAD_REQUEST);
+                }
+                $user = $this->dataUserModel->find($idUser);
+                if(!$user){
+                    return response()->json(['error' => 'usuario_nao_encontrado'],Response::HTTP_BAD_REQUEST);
+                }
+                $result = $tag->update(['data_user_id' => $idUser]);
+                return response()->json(['result' => 'tag_atualizada_com_sucesso'],Response::HTTP_OK);
+            }
+        }  catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private function isAdmin($data)
     {
         $email_value = $data['email'];
