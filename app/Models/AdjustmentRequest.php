@@ -12,6 +12,7 @@ class AdjustmentRequest extends Model
         'hora',
         'atendido',
         'justificativa',
+        'aceito',
     ];
 
     public function dataUser()

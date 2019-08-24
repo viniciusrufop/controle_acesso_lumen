@@ -33,7 +33,10 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
    
    $router->post('adjustment-request','AjustmentRequestController@adjustmentRequest');
    $router->post('get-adjustment-request','AjustmentRequestController@getAdjustmentRequest');
+   $router->post('get-adjustment-history-request','AjustmentRequestController@getAdjustmentHistoryRequest');
    $router->post('accept-adjustment-request','AjustmentRequestController@acceptAdjustmentRequest');
+
+   $router->post('get-tags',"TagController@getTags");
 });
 
 // ========= ROTAS TESTE =========

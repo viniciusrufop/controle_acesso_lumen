@@ -24,6 +24,7 @@ class CreateAdjustmentRequestsTable extends Migration
             $table->time('hora')->nullable(false);
             $table->text('justificativa')->nullable(false);
             $table->boolean('atendido')->nullable(false);
+            $table->boolean('aceito')->nullable(false);
             $table->timestamps();
         });
     }

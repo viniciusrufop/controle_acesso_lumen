@@ -49,6 +49,7 @@ class AjustmentRequestController extends Controller
                     $dataForm['atendido'] = false;
                     $dataForm['data'] = date('Y-m-d',strtotime($dataForm['data']));
                     $dataForm['hora'] = date('H:i:s',strtotime($dataForm['hora']));
+                    $dataForm['aceito'] = false;
                     $result = $this->ajustmentModel->create($dataForm);    
                     return response()->json(['error' => false,'message'=>'solicitacao_de_ajuste_realizada'],Response::HTTP_OK);
                 } else {
@@ -132,7 +133,7 @@ class AjustmentRequestController extends Controller
 
                 if($admin){
                     if(!$accept){
-                        $result = $this->ajustmentModel->where('id',$id)->update(['atendido' =>1]);
+                        $result = $this->ajustmentModel->where('id',$id)->update(['atendido' =>1,'aceito' => 0]);
                         return response()->json(['error' => false,'message'=>'solicitacao_feita'],Response::HTTP_OK);
                     } else {
                         $ajustment = $this->ajustmentModel->find($id);
@@ -143,11 +144,11 @@ class AjustmentRequestController extends Controller
                             'data_user_id' => $data_user_id,
                             'tag_value' => 'login',
                             'data'  => $data,
-                            'hora'  => $hora
+                            'hora'  => $hora,
                         ];
                         $history = $this->historyModel->create($dataForm);
                         if($history){
-                            $result = $this->ajustmentModel->where('id',$id)->update(['atendido' =>1]);
+                            $result = $this->ajustmentModel->where('id',$id)->update(['atendido' =>1,'aceito' => 1]);
                             return response()->json(['error' => false,'message'=>'solicitacao_feita'],Response::HTTP_OK);
                         }
                     }
@@ -176,6 +177,58 @@ class AjustmentRequestController extends Controller
             else return false;
         } else {
             return false;
+        }
+    }
+
+    public function getAdjustmentHistoryRequest(Request $req)
+    {
+        try {
+            $validator = Validator::make(
+                $req->params,['email'  =>  'required']
+            );
+            if($validator->fails()){
+                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
+            } else {
+                $dataForm = $req->params;
+                $user = $this->userModel->where('email',$dataForm['email'])->get()->first();
+
+                if($user){
+                    $admin = $user->admin()->get()->first();
+                    if($admin){
+                        $result = $this->ajustmentModel->where('atendido',1)->get();
+                        foreach ($result as $key => $value) {
+                            $dataUser = $value->dataUser()->get()->first();
+                            $value['nome'] = $dataUser->nome . " " . $dataUser->sobrenome;
+                            $value['data'] = $value['data'] ."T03:00:00.000000Z";
+                            unset(
+                                $value['data_user_id'],
+                                $value['atendido'],
+                                $value['updated_at']
+                            );    
+                        }
+                        return response()->json(['error' => false,'result'=>$result],Response::HTTP_OK);
+                    } else {
+                        $dataUser = $user->dataUser()->get()->first();
+                        $nome = $dataUser->nome . " " . $dataUser->sobrenome;
+                        $result = $dataUser->adjustmentRequest()->where('atendido',1)->get();
+                        
+                        foreach ($result as $key => $value) {
+                            $value['nome'] = $nome;
+                            $value['data'] = $value['data'] ."T03:00:00.000000Z";
+                            unset(
+                                $value['data_user_id'],
+                                $value['atendido'],
+                                $value['updated_at']
+                            );    
+                        }
+                        return response()->json(['error' => false,'result'=>$result],Response::HTTP_OK);
+                    }
+                } else {
+                    return response()->json(['error' => 'usuario_nao_encontrado'],Response::HTTP_NOT_FOUND);
+                }
+            }
+        } catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

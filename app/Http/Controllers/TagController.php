@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 
 use App\Models\DataUser;
+use App\Models\User;
 use App\Models\Tag;
 use App\Models\Admin;
 use App\Models\History;
@@ -19,13 +20,15 @@ class TagController extends Controller
     private $dataUserModel;
     private $tagModel;
     private $historyModel;
+    private $adminModel;
 
-    public function __construct(DataUser $dataUser, Tag $tag, Admin $admin, History $history)
+    public function __construct(DataUser $dataUser,User $user, Tag $tag, Admin $admin, History $history)
     {
         $this->dataUserModel = $dataUser;
         $this->tagModel = $tag;
         $this->adminModel = $admin;
         $this->historyModel = $history;
+        $this->userModel = $user;
     }
 
     private function myAuthToken(string $token_value)
@@ -135,10 +138,11 @@ class TagController extends Controller
                 }
 
                 $tag_value = $req->tag_value;
-                $tag = $this->tagModel->where('tag_value',$tag_value)->update(['ativo' => 0]);
+                // $tag = $this->tagModel->where('tag_value',$tag_value)->update(['ativo' => 0]);
+                $tag = $this->tagModel->where('tag_value',$tag_value)->delete();
 
                 if($tag){
-                    return response()->json(['error' => false,'message' => 'desativado_com_sucesso'],Response::HTTP_OK);
+                    return response()->json(['error' => false,'message' => 'removida_com_sucesso'],Response::HTTP_OK);
                 } else {
                     return response()->json(['error' => 'tag_nao_encontrada'],Response::HTTP_NOT_FOUND);
                 }
@@ -245,5 +249,64 @@ class TagController extends Controller
         $history = $this->historyModel->create($dataForm);
     }
 
+    public function getTags(Request $req)
+    {
+        try{
+            $validator = Validator::make(
+                $req->params,[
+                    'email'     =>  'required',
+                    'authToken' =>  'required | max:60 | min:60',
+                    ]
+            );
+            if($validator->fails()){
+                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
+            } else {
+                $admin = $this->isAdmin($req->params);
+
+                if(!$admin){
+                    return response()->json(['error' => 'solicitacao_nao_autorizada'],Response::HTTP_BAD_REQUEST);
+                }
+            
+                $tags = $this->tagModel->get();
+                $result = [];
+                foreach ($tags as $tag) {
+                    if($tag['data_user_id']){
+                        $dataUser = $tag->dataUser()->get()->first();
+                        $nome = $dataUser->nome;
+                        $sobrenome = $dataUser->sobrenome;
+                        unset($tag['created_at'],$tag['updated_at'],$tag['data_user_id']);
+                        $tag['nome'] = $nome . " " . $sobrenome;
+                        array_push($result,$tag);
+                    } else {
+                        unset($tag['created_at'],$tag['updated_at'],$tag['data_user_id']);
+                        $tag['nome'] = "";
+                        array_push($result,$tag);
+                    }
+                }
+                return response()->json(['result' => $result],Response::HTTP_OK);
+            }
+        } catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private function isAdmin($data)
+    {
+        $email_value = $data['email'];
+        $authToken_value = $data['authToken'];
+
+        $user = $this->userModel->where('email',$email_value)->get()->first();
+
+        if($user){
+            $admin = $user->admin()->get()->first();
+            $authToken = Hash::check($email_value, $authToken_value);
+            if($admin && $authToken){
+                return true;
+            } 
+            else return false;
+        } else {
+            return false;
+        }
+    }
     
 }
