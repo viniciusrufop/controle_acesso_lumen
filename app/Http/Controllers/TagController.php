@@ -69,8 +69,8 @@ class TagController extends Controller
                 $id_user = $tag->dataUser()->get()->first()->id;
                 $user = $tag->dataUser()->where('ativo',1)->get();
 
-                if(empty($user[0])){
-                    $this->insertHistories($id_user,$tag_value);
+                if(!isset($user[0])){
+                    $this->insertHistories(null,$tag_value);
                     return response()->json(['error' => 'user_UNAUTHORIZED_2'], Response::HTTP_UNAUTHORIZED);
                 } else{
                     $this->insertHistories($id_user,$tag_value);
