@@ -200,7 +200,9 @@ class AjustmentRequestController extends Controller
                             $dataUser = $value->dataUser()->get()->first();
                             $value['nome'] = $dataUser->nome . " " . $dataUser->sobrenome;
                             $value['data'] = $value['data'] ."T03:00:00.000000Z";
+                            $value['diaDoPedido'] = substr($value['created_at'],0,10) . "T03:00:00.000000Z";
                             unset(
+                                $value['created_at'],
                                 $value['data_user_id'],
                                 $value['atendido'],
                                 $value['updated_at']
@@ -215,7 +217,9 @@ class AjustmentRequestController extends Controller
                         foreach ($result as $key => $value) {
                             $value['nome'] = $nome;
                             $value['data'] = $value['data'] ."T03:00:00.000000Z";
+                            $value['diaDoPedido'] = substr($value['created_at'],0,10) . "T03:00:00.000000Z";
                             unset(
+                                $value['created_at'],
                                 $value['data_user_id'],
                                 $value['atendido'],
                                 $value['updated_at']
