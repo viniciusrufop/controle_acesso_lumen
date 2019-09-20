@@ -45,7 +45,7 @@ class TagController extends Controller
                     'tag_value' => 'required | max:8 | min:8',
                     'token'     => 'required | max:60 | min:60',
                     ]
-             );
+            );
             if($validator->fails()){
                 return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
             } else {
@@ -71,7 +71,7 @@ class TagController extends Controller
 
                 if(!isset($user[0])){
                     $this->insertHistories(null,$tag_value);
-                    return response()->json(['error' => 'user_UNAUTHORIZED_2'], Response::HTTP_UNAUTHORIZED);
+                    return response()->json(['error' => 'usuario_nao_autorizado'], Response::HTTP_UNAUTHORIZED);
                 } else{
                     $this->insertHistories($id_user,$tag_value);
                     return response()->json(['error' => false,'message' => 'autenticado_com_sucesso'],Response::HTTP_OK);
