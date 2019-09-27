@@ -40,10 +40,13 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
    $router->post('delete-tag',"TagController@deleteTag");
    $router->post('desvincular-tag',"TagController@desvincularTag");
    $router->post('vincular-tag',"TagController@vincularTag");
+
+   $router->post('importExcelUser',"ImportExcelController@importExcelUser");
+
 });
 
 // ========= ROTAS TESTE =========
-
+// $router->post('testeImport',"ImportExcelController@testeImport");
 
 $router->get('teste','ExampleController@testeGet');
 $router->get('teste-post','ExampleController@testePost');
