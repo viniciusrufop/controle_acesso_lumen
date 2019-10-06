@@ -12,9 +12,12 @@ $router->group(['prefix'=>'api'],function () use ($router){
 });
 
 $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router){
+   
+   /** UserController */
    $router->get('auth',"UserController@auth");
    $router->post('get-admin','UserController@getAdmin');
 
+   /** DataUserController */
    $router->post('upgrade-admin',"DataUserController@upgradeAdmin");
    $router->put('downgrade-admin',"DataUserController@downgradeAdmin");
    $router->get('get-token-admin',"DataUserController@getTokenAdmin");
@@ -31,16 +34,19 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
    $router->post('get-history','DataUserController@getHistory');
    $router->post('get-relatorio','DataUserController@getRelatorio');
    
+   /** AjustmentRequestController */
    $router->post('adjustment-request','AjustmentRequestController@adjustmentRequest');
    $router->post('get-adjustment-request','AjustmentRequestController@getAdjustmentRequest');
    $router->post('get-adjustment-history-request','AjustmentRequestController@getAdjustmentHistoryRequest');
    $router->post('accept-adjustment-request','AjustmentRequestController@acceptAdjustmentRequest');
 
+   /** TagController */
    $router->post('get-tags',"TagController@getTags");
    $router->post('delete-tag',"TagController@deleteTag");
    $router->post('desvincular-tag',"TagController@desvincularTag");
    $router->post('vincular-tag',"TagController@vincularTag");
 
+   /** ImportExcelController */
    $router->post('importExcelUser',"ImportExcelController@importExcelUser");
 
 });

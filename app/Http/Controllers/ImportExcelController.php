@@ -77,13 +77,17 @@ class ImportExcelController extends Controller
             $user = $this->userModel->create($dataForm);
             $user->dataUser()->create($dataForm);
             if ($dataForm['admin']) {
-                $dataForm = [
+                $dataAdmin = [
                     'user_id'   => $user->id,
                     'token'     => Hash::make($dataForm['email'])
                 ];
-                $user->admin()->create($dataForm);
+                $user->admin()->create($dataAdmin);
             }
-            return ['success' => true];
+            return [
+                'success'   => true,
+                'nome'      => $dataForm['nome'],
+                'email'     => $dataForm['email'],
+            ];
         } catch(QueryException $e){
             return [
                 'nome'      => $dataForm['nome'],

@@ -411,5 +411,22 @@ class TagController extends Controller
             // return false;
         }
     }
+
+    // private function isAdmin($data)
+    // {
+    //     $email_value = $data['email'];
+    //     $authToken_value = $data['authToken'];
+
+    //     $user = $this->userModel->where('email',$email_value)->get()->first();
+
+    //     if (!$user) { return false; }
+        
+    //     $admin = $user->admin()->get()->first();
+    //     $authToken = Hash::check($email_value, $authToken_value);
+
+    //     if($admin && $authToken){ return true; } 
+        
+    //     return false;
+    // }
     
 }
