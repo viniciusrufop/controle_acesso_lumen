@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\JWTAuth;
 use App\Models\User;
 use App\Models\DataUser;
+use Exception;
 
 class UserController extends Controller
 {
@@ -95,25 +96,23 @@ class UserController extends Controller
                     'authToken' =>  'required | max:60 | min:60',
                     ]
             );
-            if($validator->fails()){
-                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
-            } else {
-                $email_value = $req->params['email'];
-                $authToken_value = $req->params['authToken'];
+            if($validator->fails()){ return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST); }
 
-                $user = $this->userModel->where('email',$email_value)->get()->first();
+            $email_value = $req->params['email'];
+            $authToken_value = $req->params['authToken'];
 
-                if($user){
-                    $admin = $user->admin()->get()->first();
-                    $authToken = Hash::check($email_value, $authToken_value);
-                    if($admin && $authToken){
-                        return response()->json(['error' => false,'message' => 'autorizado'],Response::HTTP_OK);
-                    } 
-                    else return response()->json(['error' => true,'message' => 'nao_autorizado'],Response::HTTP_UNAUTHORIZED);
-                } else {
-                    return response()->json(['user_not_found'], Response::HTTP_UNAUTHORIZED);
-                }
-            }
+            $user = $this->userModel->where('email',$email_value)->get()->first();
+
+            if (!$user) { return response()->json(['user_not_found'], Response::HTTP_UNAUTHORIZED); }
+
+            $admin = $user->admin()->get()->first();
+            $authToken = Hash::check($email_value, $authToken_value);
+
+            if(!$admin || !$authToken) { return response()->json(['error' => true,'message' => 'nao_autorizado'],Response::HTTP_UNAUTHORIZED); }
+            
+            return response()->json(['result' => 'autorizado', 'success' => true,],Response::HTTP_OK);
+        } catch(Exception $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
         } catch(QueryException $e){
             return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
         }
