@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Database\QueryException;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use App\Models\ImportExcel;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Exception;
 
+use App\Models\ImportExcel;
 use App\Models\User;
 use App\Models\DataUser;
 
@@ -26,10 +28,13 @@ class ImportExcelController extends Controller
     public function importExcelUser(Request $request)
     {
         try {
+            $validator = Validator::make($request->all(),['arquivo'  =>  'required']);
+            if($validator->fails()){ throw new Exception('The arquivo field is required.'); }
+
             $dadosExcel = (new ImportExcel())->toArray($request->file('arquivo'));
             $header = $dadosExcel[0][0];
 
-            if(!$this->headerValidation($header)) { throw new \Exception("Dados de entrada incorretos."); }
+            if(!$this->headerValidation($header)) { throw new Exception("Dados de entrada incorretos."); }
 
             $usuarios = [];
             foreach ($dadosExcel[0] as $key => $value) {
@@ -56,16 +61,20 @@ class ImportExcelController extends Controller
                 }
             }
 
-            if (count($usuarios) <= 0) { throw new \Exception("Tabela sem dados para cadastrar."); }
+            if (count($usuarios) <= 0) { throw new Exception("Tabela sem dados para cadastrar."); }
 
             $result = [];
             foreach ($usuarios as $usuario) {
                 array_push($result, $this->insertNewUser($usuario));
-            }            
+            }
+            
+            $this->removeUser();
 
             return response()->json(['Result' => $result, 'success' => true],Response::HTTP_OK);
-        } catch(\Exception $e){
-            return response()->json(['message' => $e->getMessage(), 'success' => false],Response::HTTP_INTERNAL_SERVER_ERROR);
+        } catch(Exception $e){
+            return response()->json(['result' => $e->getMessage(), 'success' => false],Response::HTTP_BAD_REQUEST);
+        } catch(QueryException $e){
+            return response()->json(['result' => $e, 'success' => false],Response::HTTP_BAD_REQUEST);
         }
         
     }
@@ -124,4 +133,21 @@ class ImportExcelController extends Controller
                 return 0;
         }
     }
+
+    private function removeUser()
+    {
+        try{
+            $users = $this->userModel->with('dataUser')->get()->toArray();
+            
+            array_map(function($user){
+                if (!is_null($user['data_user']) || ($user['email'] === 'adminuser@admin.com')) { return; };
+                $this->userModel->find($user['id'])->delete();
+            }, $users);
+
+            return true;
+        } catch(Exception $e){
+            throw new Exception($e);
+        }
+    }
+    
 }
