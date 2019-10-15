@@ -16,6 +16,7 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
    /** UserController */
    $router->get('auth',"UserController@auth");
    $router->post('get-admin','UserController@getAdmin');
+   $router->post('changePassword','UserController@changePassword');
 
    /** DataUserController */
    $router->post('upgrade-admin',"DataUserController@upgradeAdmin");
@@ -33,6 +34,7 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
    $router->put('update-user','DataUserController@updateUser');
    $router->post('get-history','DataUserController@getHistory');
    $router->post('get-relatorio','DataUserController@getRelatorio');
+   $router->get('get-all-data-user','DataUserController@getAllDatauser');
    
    /** AjustmentRequestController */
    $router->post('adjustment-request','AjustmentRequestController@adjustmentRequest');

@@ -655,5 +655,18 @@ class DataUserController extends Controller
         }
     }
 
+    public function getAllDatauser()
+    {
+        try{
+            $dataUsers = $this->dataUserModel->with('user')->get();
+
+            return response()->json(['result' => $dataUsers, 'success' => true],Response::HTTP_OK);
+        } catch(Exception $e){
+            return response()->json(['result' => $e->getMessage(), 'success' => false],Response::HTTP_BAD_REQUEST);
+        } catch(QueryException $e){
+            return response()->json(['result' => $e, 'success' => false],Response::HTTP_BAD_REQUEST);
+        }
+    }
+
     
 }
