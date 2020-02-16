@@ -1,6 +1,7 @@
 <?php
 
-$router->post('login','UserController@login');
+/** AuthController */
+$router->post('login','AuthController@login');
 
 $router->group(['prefix'=>'api'],function () use ($router){
    $router->post('auth-by-tag',"TagController@authByTag");
@@ -12,9 +13,11 @@ $router->group(['prefix'=>'api'],function () use ($router){
 });
 
 $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router){
+
+   /** AuthController */
+   $router->get('logged','AuthController@logged');
    
    /** UserController */
-   $router->get('auth',"UserController@auth");
    $router->post('get-admin','UserController@getAdmin');
    $router->post('changePassword','UserController@changePassword');
 
@@ -53,26 +56,3 @@ $router->group(['prefix'=>'api','middleware' => 'auth'],function () use ($router
 
 });
 
-// ========= ROTAS TESTE =========
-// $router->post('testeImport',"ImportExcelController@testeImport");
-
-$router->get('teste','ExampleController@testeGet');
-$router->get('teste-post','ExampleController@testePost');
-$router->get('generate-token-teste','UserController@generateTokeTeste');
-
-$router->get('get-data-user','ExampleController@getDataUser');
-$router->get('get-user-by-data','ExampleController@getUserByData');
-$router->get('insert-user','ExampleController@insertUser');
-$router->get('get-tag-by-data-user','ExampleController@getTagByDataUser');
-$router->get('get-data-user-by-tag','ExampleController@getDataUserByTag');
-$router->get('insert-tag','ExampleController@insertTag');
-$router->get('get-tags-without-user','ExampleController@getTagsWhithoutUse');
-$router->get('get-tag-true','ExampleController@getTagTrue');
-$router->get('change-tag-true','ExampleController@changeTagTrue');
-$router->get('get-token-user','ExampleController@getTokenUser');
-$router->get('generate-token','ExampleController@generateToken');
-$router->get('upgrade-admin','ExampleController@upgradeAdmin');
-$router->get('downgrade-admin','ExampleController@downgradeAdmin');
-$router->get('teste-auth-token','ExampleController@testeAuthToken');
-$router->get('insert-history','ExampleController@insertHistory');
-$router->get('get-cep-exemplo','ExampleController@getCep');

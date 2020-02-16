@@ -7,6 +7,7 @@ use Illuminate\Database\QueryException;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
+use Exception;
 
 use App\Models\User;
 use App\Models\DataUser;
@@ -31,6 +32,187 @@ class DataUserController extends Controller
         $this->adminModel = $admin;
         $this->historyModel = $history;
     }
+
+    /** CRUD DE USUÁRIOS */
+
+    public function createUser(Request $req)
+    {
+        try{
+            $validator = Validator::make(
+                $req['params'],[
+                    'nome'  =>  'required',
+                    'email' =>  'required',
+                    'login' =>  'required | max:4 | min:4',
+                    'senha' =>  'required | max:4 | min:4',
+                    'ativo' =>  'required | boolean',
+                    'admin' =>  'required | boolean',
+                    ]
+            );
+            if ($validator->fails()) { throw new Exception($validator->errors()); }
+
+            $params = $req['params'];
+
+            $email = $this->userModel->where('email', $params['email'])->get()->first();
+            $login = $this->dataUserModel->where('login', $params['login'])->get()->first();
+
+            if ($email || $login) { throw new Exception('Email ou Login já cadastrado.'); }
+
+            $params['password'] = Hash::make($params['login'] . $params['senha']);
+            $user = $this->userModel->create($params);
+            $dataUser = $user->dataUser()->create($params);
+
+            if($params['admin']){
+                $dataForm = [ 'user_id' => $user->id, 'token' => Hash::make($params['email']) ];
+                $user->admin()->create($dataForm);
+            }
+
+            if($params['tag']){
+                $tags = $params['tag'];
+                $data_user_id = $dataUser->id;
+                foreach($tags as $tag_value){
+                    $this->tagModel->where('tag_value', $tag_value)->update(['ativo' =>1,'data_user_id' => $data_user_id]);
+                }
+                return response()->json(['result' => 'Usuário criado com sucesso, com tags.', 'success' => true], Response::HTTP_CREATED);
+            }
+
+            return response()->json(['result' => 'Usuário criado com sucesso.', 'success' => true], Response::HTTP_CREATED);
+        } catch(Exception $e){
+            return response()->json(['result' => $e->getMessage(), 'success' => false], Response::HTTP_BAD_REQUEST);
+        } catch(QueryException $e){
+            return response()->json(['result' => $e, 'success' => false], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function getDataUser(Request $req)
+    {
+        try{
+            $validator = Validator::make(
+                $req->params,['id' =>  'required']
+            );
+
+            if($validator->fails()){
+                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
+            } else {
+                $id_value = $req->params['id'];
+                $dataUser = $this->dataUserModel->find($id_value);
+
+                if($dataUser){
+                    $email = $dataUser->user()->get()->first()->email;
+                    $tags = $dataUser->tags()->get();
+                    $admin = $dataUser->user()->get()->first()->admin()->get()->first() ? true : false;
+
+                    if(!empty($tags[0])){
+                        $tagList = [];
+                        foreach ($tags as $tag) {
+                            $values = [
+                                'tag_value' => $tag['tag_value'],
+                                'ativo' => $tag['ativo'],
+                            ];
+                            array_push($tagList,$values);
+                        }
+                        $dataUser['tags'] = $tagList;
+                    } 
+                    $dataUser['email'] = $email;
+                    $dataUser['admin'] = $admin;
+                    unset(
+                        $dataUser['user_id'],
+                        $dataUser['created_at'],
+                        $dataUser['updated_at']
+                    );
+                    $result = [
+                        'dataUser' => $dataUser,
+                    ];
+                    return response()->json(['error' => false,'result' => $result],Response::HTTP_OK);
+                    
+                } else {
+                    return response()->json(['error' => true,'message' => 'usuario_nao_encontrado'],Response::HTTP_NOT_FOUND);
+                }
+            }
+        } catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function updateUser(Request $req)
+    {
+        try{
+            $validator = Validator::make(
+                $req->params,[
+                    'id'    =>  'required',
+                    'nome'  =>  'required',
+                    'email' =>  'required',
+                    'login' =>  'required | max:4 | min:4',
+                    'ativo' =>  'required | boolean',
+                    'admin' =>  'required | boolean'
+                    ]
+            );
+            if($validator->fails()){
+                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
+            } else {
+                $dataUser = $this->dataUserModel->find($req->params['id']);
+                $admin_value = $req->params['admin'];
+
+                if($dataUser){
+                    $user = $dataUser->user()->get()->first();
+                    $adminUser = $user->admin()->get()->first();
+                    $email_value = $user->email;
+
+                    if($admin_value && !$adminUser){
+                        $dataForm = [
+                            'user_id'   => $user->id,
+                            'token'     => Hash::make($email_value)
+                        ];
+                        $admin = $user->admin()->create($dataForm);
+                    } else if(!$admin_value && $adminUser){
+                        $adminUser->delete();
+                    }
+
+                    if(!empty($req->params['tag'][0])){
+                        foreach ($req->params['tag'] as $tag_value) {
+                            $tag = $this->tagModel->where('tag_value',$tag_value)->get()->first();
+                            $ativo = ($tag['ativo']) ? 0 : 1;
+                            $tag->update(['ativo' => $ativo]);
+                        }
+                    }
+                    $dataForm = $req->params;
+                    $result = $dataUser->update($dataForm);
+                    return response()->json(['error' => false,'result' => $result],Response::HTTP_OK);
+                } else {
+                    return response()->json(['error' => true,'message' => 'usuario_nao_encontrado'],Response::HTTP_NOT_FOUND);
+                }
+            }
+        } catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function deleteUser(Request $req)
+    {
+        try{
+            $validator = Validator::make(
+                $req->all(),['id' =>  'required']
+            );
+
+            if($validator->fails()){
+                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
+            } else {
+
+                $id_value = $req->id;
+                $dataUser = $this->dataUserModel->find($id_value);
+
+                if($dataUser){
+                    $user = $dataUser->user()->delete();
+                    return response()->json(['error' => false,'message' => 'usuario_deletado_com_sucesso'],Response::HTTP_OK);
+                } else {
+                    return response()->json(['error' => true,'message' => 'usuario_nao_encontrado'],Response::HTTP_NOT_FOUND);
+                }
+            }
+        } catch(QueryException $e){
+            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /** ========== */
 
     public function upgradeAdmin(Request $req)
     {
@@ -159,72 +341,6 @@ class DataUserController extends Controller
         }
     }
 
-    public function createUser(Request $req)
-    {
-        try{
-            $validator = Validator::make(
-                $req->params,[
-                    'nome'  =>  'required',
-                    'email' =>  'required',
-                    'login' =>  'required | max:4 | min:4',
-                    'senha' =>  'required | max:4 | min:4',
-                    'ativo' =>  'required | boolean',
-                    'admin' =>  'required | boolean',
-                    ]
-            );
-            if($validator->fails()){
-                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
-            } else {
-
-                $email_value = $req->params['email'];
-                $login_value = $req->params['login'];
-
-                $email = $this->userModel->where('email',$email_value)->get()->first();
-                $login = $this->dataUserModel->where('login',$login_value)->get()->first();
-
-                if($email || $login){
-                    $message = [
-                        'message'   => 'email_ou_login_ja_cadastrados'
-                    ];
-                    return response()->json(['error' => true, $message],Response::HTTP_BAD_REQUEST);
-                } else {
-
-                    $dataForm = $req->params;
-                    $dataForm['password'] = Hash::make($req->params['login'] . $req->params['senha']);
-                    $user = $this->userModel->create($dataForm);
-                    $dataUser = $user->dataUser()->create($req->params);
-
-                    if($req->params['admin']){
-                        $dataForm = [
-                            'user_id'   => $user->id,
-                            'token'     => Hash::make($email_value)
-                        ];
-                        $admin = $user->admin()->create($dataForm);
-                    }
-
-                    if($req->params['tag']){
-                        $tags = $req->params['tag'];
-                        $data_user_id = $dataUser->id;
-                        foreach($tags as $tag_value){
-                            $tag = $this->tagModel
-                                    ->where('tag_value',$tag_value)
-                                    ->update([
-                                        'ativo' =>1,
-                                        'data_user_id' => $data_user_id
-                                        ]);
-                        }
-                        return response()->json(['error' => false,'message' => 'criado_com_sucesso'],Response::HTTP_CREATED);
-                    } else {
-                        return response()->json(['error' => false,'message' => 'criado_com_sucesso_sem_tags'],Response::HTTP_CREATED);
-                    }
-                }
-            }
-
-        } catch(QueryException $e){
-            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
     public function getEmailUser(Request $req)
     {
         try{
@@ -306,82 +422,6 @@ class DataUserController extends Controller
         }
     }
 
-    public function deleteUser(Request $req)
-    {
-        try{
-            $validator = Validator::make(
-                $req->all(),['id' =>  'required']
-            );
-
-            if($validator->fails()){
-                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
-            } else {
-
-                $id_value = $req->id;
-                $dataUser = $this->dataUserModel->find($id_value);
-
-                if($dataUser){
-                    $user = $dataUser->user()->delete();
-                    return response()->json(['error' => false,'message' => 'usuario_deletado_com_sucesso'],Response::HTTP_OK);
-                } else {
-                    return response()->json(['error' => true,'message' => 'usuario_nao_encontrado'],Response::HTTP_NOT_FOUND);
-                }
-            }
-        } catch(QueryException $e){
-            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    public function getDataUser(Request $req)
-    {
-        try{
-            $validator = Validator::make(
-                $req->params,['id' =>  'required']
-            );
-
-            if($validator->fails()){
-                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
-            } else {
-                $id_value = $req->params['id'];
-                $dataUser = $this->dataUserModel->find($id_value);
-
-                if($dataUser){
-                    $email = $dataUser->user()->get()->first()->email;
-                    $tags = $dataUser->tags()->get();
-                    $admin = $dataUser->user()->get()->first()->admin()->get()->first() ? true : false;
-
-                    if(!empty($tags[0])){
-                        $tagList = [];
-                        foreach ($tags as $tag) {
-                            $values = [
-                                'tag_value' => $tag['tag_value'],
-                                'ativo' => $tag['ativo'],
-                            ];
-                            array_push($tagList,$values);
-                        }
-                        $dataUser['tags'] = $tagList;
-                    } 
-                    $dataUser['email'] = $email;
-                    $dataUser['admin'] = $admin;
-                    unset(
-                        $dataUser['user_id'],
-                        $dataUser['created_at'],
-                        $dataUser['updated_at']
-                    );
-                    $result = [
-                        'dataUser' => $dataUser,
-                    ];
-                    return response()->json(['error' => false,'result' => $result],Response::HTTP_OK);
-                    
-                } else {
-                    return response()->json(['error' => true,'message' => 'usuario_nao_encontrado'],Response::HTTP_NOT_FOUND);
-                }
-            }
-        } catch(QueryException $e){
-            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
     public function getDataUserByEmail(Request $req)
     {
         try{
@@ -427,59 +467,6 @@ class DataUserController extends Controller
                     return response()->json(['error' => false,'result' => $result],Response::HTTP_OK);
                 } else {
                     return response()->json(['error' => true,'message' => 'email_de_usuario_nao_encontrado'],Response::HTTP_NOT_FOUND);
-                }
-            }
-        } catch(QueryException $e){
-            return response()->json(['error' => $e],Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    public function updateUser(Request $req)
-    {
-        try{
-            $validator = Validator::make(
-                $req->params,[
-                    'id'    =>  'required',
-                    'nome'  =>  'required',
-                    'email' =>  'required',
-                    'login' =>  'required | max:4 | min:4',
-                    'ativo' =>  'required | boolean',
-                    'admin' =>  'required | boolean'
-                    ]
-            );
-            if($validator->fails()){
-                return response()->json($validator->errors(),Response::HTTP_BAD_REQUEST);
-            } else {
-                $dataUser = $this->dataUserModel->find($req->params['id']);
-                $admin_value = $req->params['admin'];
-
-                if($dataUser){
-                    $user = $dataUser->user()->get()->first();
-                    $adminUser = $user->admin()->get()->first();
-                    $email_value = $user->email;
-
-                    if($admin_value && !$adminUser){
-                        $dataForm = [
-                            'user_id'   => $user->id,
-                            'token'     => Hash::make($email_value)
-                        ];
-                        $admin = $user->admin()->create($dataForm);
-                    } else if(!$admin_value && $adminUser){
-                        $adminUser->delete();
-                    }
-
-                    if(!empty($req->params['tag'][0])){
-                        foreach ($req->params['tag'] as $tag_value) {
-                            $tag = $this->tagModel->where('tag_value',$tag_value)->get()->first();
-                            $ativo = ($tag['ativo']) ? 0 : 1;
-                            $tag->update(['ativo' => $ativo]);
-                        }
-                    }
-                    $dataForm = $req->params;
-                    $result = $dataUser->update($dataForm);
-                    return response()->json(['error' => false,'result' => $result],Response::HTTP_OK);
-                } else {
-                    return response()->json(['error' => true,'message' => 'usuario_nao_encontrado'],Response::HTTP_NOT_FOUND);
                 }
             }
         } catch(QueryException $e){

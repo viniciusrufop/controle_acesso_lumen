@@ -44,4 +44,9 @@ class User extends Model implements JWTSubject, AuthenticatableContract, Authori
     {
         return $this->hasOne(Admin::class,'user_id','id');
     }
+
+    public function cache()
+    {
+        return $this->hasOne(Cache::class,'user_id', 'id');
+    }
 }
