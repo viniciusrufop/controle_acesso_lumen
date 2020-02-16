@@ -13,11 +13,15 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        for ($i=0; $i < 5; $i++) { 
-        	$user = new User;
-        	$user->email = 'email'.$i.'@gmail.com';
-        	$user->password = Hash::make('12345'.$i);
-        	$user->save();
-        }
+        $user = new User;
+        $user->email = 'adminuser@admin.com';
+        $user->password = Hash::make('!Admin123');
+        $user->save();
+        // for ($i=0; $i < 5; $i++) { 
+        // 	$user = new User;
+        // 	$user->email = 'email'.$i.'@gmail.com';
+        // 	$user->password = Hash::make('12345'.$i);
+        // 	$user->save();
+        // }
     }
 }

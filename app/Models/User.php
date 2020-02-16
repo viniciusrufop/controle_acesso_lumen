@@ -21,6 +21,8 @@ class User extends Model implements JWTSubject, AuthenticatableContract, Authori
         'password',
     ];
 
+    protected $hidden = ['password']; 
+
     public $timestamps = true;
     
     public function getJWTIdentifier()
@@ -31,5 +33,20 @@ class User extends Model implements JWTSubject, AuthenticatableContract, Authori
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function dataUser()
+    {
+        return $this->hasOne(DataUser::class,'user_id','id');
+    }
+
+    public function admin()
+    {
+        return $this->hasOne(Admin::class,'user_id','id');
+    }
+
+    public function cache()
+    {
+        return $this->hasOne(Cache::class,'user_id', 'id');
     }
 }
