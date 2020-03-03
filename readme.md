@@ -1,21 +1,41 @@
-# Lumen PHP Framework
+# Trabalho de Conclusão de curso
 
-[![Build Status](https://travis-ci.org/laravel/lumen-framework.svg)](https://travis-ci.org/laravel/lumen-framework)
-[![Total Downloads](https://poser.pugx.org/laravel/lumen-framework/d/total.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/lumen-framework/v/stable.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/lumen-framework/v/unstable.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![License](https://poser.pugx.org/laravel/lumen-framework/license.svg)](https://packagist.org/packages/laravel/lumen-framework)
+## Sistema de controle de acesso utilizando autenticação por RFID e gerenciamento por meio de software WEB
 
-Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
+[Link para download do arquivo PDF de todo o projeto](https://www.monografias.ufop.br/handle/35400000/2222).
 
-## Official Documentation
+# Passos de configuração
 
-Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
+## Utilizar a branch master
 
-## Security Vulnerabilities
+## Rodar o composer
 
-If you discover a security vulnerability within Lumen, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+Abrir o terminal e executar `composer install`
 
-## License
+## Configurar o arquivo .env
 
-The Lumen framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Abrir o terminal e executar `cp .env.example .env`, e popular as variaveis com os dados de conexão de seu banco de dados
+
+## Criar as migrations
+
+Abrir o terminal e executar `php artisan migrate`
+
+## Rodar o seeder para criar usuário de teste
+
+Abrir o terminal e executar `php artisan db:seed`, Usuário: `adminuser@admin.com` Senha `!Admin123`
+
+## Criar a chave de autenticação JWT
+
+Abrir o terminal e executar `php artisan jwt:secret`
+
+## Criar chave padrão
+
+Abrir o terminal e executar `php artisan key:generate`
+
+# Front-End do projeto
+
+Todo o front-end da aplicação foi feito utilizando o framework **Angular**. [Repositório do Front](https://github.com/viniciusrufop/controle_acesso_angular.git)
+
+# Firmware do projeto
+
+O firmware foi feito utilizando a linguagem Arduino, que tem por base a linguagem C++. Algumas funções foram feitas utilizando FreeRTOS, que é um sistema operacional de tempo real. A placa de desenvolvimento utilizada no projeto foi a **ESP32-DevKitC**. [Repositório do Firmware](https://github.com/viniciusrufop/controle_acesso_firmware.git)
